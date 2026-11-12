@@ -2,6 +2,8 @@
 # trust root: ${DATA_ROOT}/caddy/data/caddy/pki/authorities/local/root.crt
 {
 	admin localhost:2019
+	# Clients send no SNI when connecting by IP; serve the IP cert then.
+	default_sni {$HOST_IP}
 }
 
 {$GRAFANA_HOSTNAME}, {$HOST_IP} {

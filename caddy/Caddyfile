@@ -1,0 +1,11 @@
+# TLS in front of Grafana only. Internal CA until a real cert is decided;
+# trust root: ${DATA_ROOT}/caddy/data/caddy/pki/authorities/local/root.crt
+{
+	admin localhost:2019
+}
+
+{$GRAFANA_HOSTNAME}, {$HOST_IP} {
+	tls internal
+	encode zstd gzip
+	reverse_proxy grafana:3000
+}

@@ -1,0 +1,138 @@
+name: ttvfd-monitoring
+
+# Container stdout goes to the host journal; Alloy ships the journal to Loki.
+x-logging: &logging
+  logging:
+    driver: journald
+    options:
+      tag: "{{.Name}}"
+
+networks:
+  mon:
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.name: br-mon
+    ipam:
+      config:
+        - subnet: 172.30.0.0/24
+          gateway: 172.30.0.1
+
+services:
+  prometheus:
+    image: prom/prometheus:v3.15.1
+    <<: *logging
+    restart: unless-stopped
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=${PROM_RETENTION:-30d}
+      - --storage.tsdb.retention.size=${PROM_RETENTION_SIZE:-10GB}
+      - --web.enable-lifecycle
+    volumes:
+      - ./prometheus:/etc/prometheus:ro
+      - ${DATA_ROOT}/prometheus:/prometheus
+    ports:
+      - "127.0.0.1:9090:9090"   # SSH tunnel only
+    networks: [mon]
+
+  alertmanager:
+    image: prom/alertmanager:v0.34.2
+    <<: *logging
+    restart: unless-stopped
+    command:
+      - --config.file=/etc/alertmanager/alertmanager.yml
+      - --storage.path=/alertmanager
+    volumes:
+      - ./alertmanager:/etc/alertmanager:ro
+      - ${DATA_ROOT}/alertmanager:/alertmanager
+    ports:
+      - "127.0.0.1:9093:9093"   # SSH tunnel only
+    networks: [mon]
+
+  loki:
+    image: grafana/loki:3.6.20
+    <<: *logging
+    restart: unless-stopped
+    command: -config.file=/etc/loki/loki.yml
+    volumes:
+      - ./loki/loki.yml:/etc/loki/loki.yml:ro
+      - ${DATA_ROOT}/loki:/loki
+    networks: [mon]
+
+  alloy:
+    image: grafana/alloy:v1.21.3
+    <<: *logging
+    restart: unless-stopped
+    user: "0:0"   # needs to read the host journal
+    command:
+      - run
+      - --server.http.listen-addr=0.0.0.0:12345
+      - --storage.path=/var/lib/alloy/data
+      - --disable-reporting
+      - /etc/alloy/config.alloy
+    volumes:
+      - ./alloy/config.alloy:/etc/alloy/config.alloy:ro
+      - ${DATA_ROOT}/alloy:/var/lib/alloy/data
+      - /var/log/journal:/var/log/journal:ro
+      - /run/log/journal:/run/log/journal:ro
+      - /etc/machine-id:/etc/machine-id:ro
+    networks: [mon]
+    depends_on: [loki]
+
+  grafana:
+    image: grafana/grafana:13.3.1
+    <<: *logging
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD}
+      GF_SERVER_DOMAIN: ${GRAFANA_HOSTNAME}
+      GF_SERVER_ROOT_URL: https://${GRAFANA_HOSTNAME}/
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
+      GF_ANALYTICS_CHECK_FOR_PLUGIN_UPDATES: "false"
+      GF_NEWS_NEWS_FEED_ENABLED: "false"
+      GF_METRICS_ENABLED: "true"
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - ${DATA_ROOT}/grafana:/var/lib/grafana
+    networks: [mon]
+    depends_on: [prometheus, loki, alertmanager]
+
+  caddy:
+    image: caddy:2.11.8
+    <<: *logging
+    restart: unless-stopped
+    environment:
+      GRAFANA_HOSTNAME: ${GRAFANA_HOSTNAME}
+      HOST_IP: ${HOST_IP}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ${DATA_ROOT}/caddy/data:/data
+      - ${DATA_ROOT}/caddy/config:/config
+    networks: [mon]
+    depends_on: [grafana]
+
+  # This VM's own host metrics. Host network so NIC stats are real; bound to
+  # the br-mon gateway only, so 9100 is not exposed on the LAN.
+  node-exporter:
+    image: prom/node-exporter:v1.12.1
+    <<: *logging
+    restart: unless-stopped
+    network_mode: host
+    pid: host
+    command:
+      - --path.rootfs=/host
+      - --web.listen-address=172.30.0.1:9100
+      - --collector.systemd
+      - --collector.filesystem.mount-points-exclude=^/(dev|proc|sys|run|var/lib/docker/.+|host)($$|/)
+    volumes:
+      - /:/host:ro,rslave
+      - /run/dbus/system_bus_socket:/var/run/dbus/system_bus_socket:ro
+    depends_on: [prometheus]   # ensures br-mon exists before bind

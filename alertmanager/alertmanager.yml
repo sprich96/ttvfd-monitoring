@@ -1,0 +1,30 @@
+# Phase 1: receivers are placeholders (no destination configured yet).
+# Phase 8 wires real receivers per severity; secrets via *_file from Docker secrets.
+global:
+  resolve_timeout: 5m
+
+route:
+  receiver: blackhole
+  group_by: [alertname, job, instance]
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 4h
+  routes:
+    - matchers: ['alertname="Watchdog"']
+      receiver: watchdog
+      repeat_interval: 5m
+    - matchers: ['severity="critical"']
+      receiver: critical
+    - matchers: ['severity="warning"']
+      receiver: warning
+
+inhibit_rules:
+  - source_matchers: ['severity="critical"']
+    target_matchers: ['severity="warning"']
+    equal: [alertname, instance]
+
+receivers:
+  - name: blackhole
+  - name: watchdog     # -> external dead-man's switch (phase 8)
+  - name: critical
+  - name: warning

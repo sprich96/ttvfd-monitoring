@@ -1,5 +1,6 @@
-# TLS in front of Grafana only. Internal CA until a real cert is decided;
-# trust root: ${DATA_ROOT}/caddy/data/caddy/pki/authorities/local/root.crt
+# TLS in front of Grafana only. Caddy internal CA by operator decision (2026-11-13):
+# browser warning accepted; no AD CS / ACME / GPO trust. Root (for optional manual trust):
+# ${DATA_ROOT}/caddy/data/caddy/pki/authorities/local/root.crt
 {
 	admin localhost:2019
 	# Clients send no SNI when connecting by IP; serve the IP cert then.

@@ -18,11 +18,11 @@ One Docker Compose stack on this VM that gives metrics, logs, dashboards and ale
 | Item | Value |
 |---|---|
 | This VM hostname / IP | monitor-grafana / 10.1.6.25 |
-| Monitoring subnet(s) to discover | 10.1.6.0/24 (+ additional TBD) |
+| Monitoring subnet(s) to discover | 10.1.6.0/24 (servers/infra); 10.1.40.0/24 (station 1 cameras); 10.2.40.0/24 (station 2 cameras) |
 | vCenter FQDN (or standalone ESXi hosts) | vcenter.ttvfd.com (10.1.6.29) |
 | Domain controllers | DC1 10.1.6.10, DC2 10.1.6.11 (domain ttvfd.com) |
 | UniFi controller / console (UDM, Cloud Key, self-hosted) | 10.1.6.1 (console + gateway) |
-| UniFi Protect NVR | |
+| UniFi Protect NVR | station 1: 10.1.40.2; station 2: 10.2.40.3 |
 | Hyper-V hosts (note which one runs this VM) | veeam 10.1.6.24 (runs this VM) |
 | Veeam B&R server + version (12.x / 13, Windows or appliance) | veeam 10.1.6.24 (version TBD) |
 | Veeam repositories (and whether any sit on Unraid) | |

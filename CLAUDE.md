@@ -17,18 +17,18 @@ One Docker Compose stack on this VM that gives metrics, logs, dashboards and ale
 ## Target environment (fill this in before the agent starts)
 | Item | Value |
 |---|---|
-| This VM hostname / IP | |
-| Monitoring subnet(s) to discover | |
-| vCenter FQDN (or standalone ESXi hosts) | |
-| Domain controllers | |
-| UniFi controller / console (UDM, Cloud Key, self-hosted) | |
+| This VM hostname / IP | monitor-grafana / 10.1.6.25 |
+| Monitoring subnet(s) to discover | 10.1.6.0/24 (+ additional TBD) |
+| vCenter FQDN (or standalone ESXi hosts) | vcenter.ttvfd.com (10.1.6.29) |
+| Domain controllers | DC1 10.1.6.10, DC2 10.1.6.11 (domain ttvfd.com) |
+| UniFi controller / console (UDM, Cloud Key, self-hosted) | 10.1.6.1 (console + gateway) |
 | UniFi Protect NVR | |
-| Hyper-V hosts (note which one runs this VM) | |
-| Veeam B&R server + version (12.x / 13, Windows or appliance) | |
+| Hyper-V hosts (note which one runs this VM) | veeam 10.1.6.24 (runs this VM) |
+| Veeam B&R server + version (12.x / 13, Windows or appliance) | veeam 10.1.6.24 (version TBD) |
 | Veeam repositories (and whether any sit on Unraid) | |
-| Unraid server + version | |
-| DNS servers / NTP | |
-| Alert destination (email / Slack / Teams / ntfy / Pushover) | |
+| Unraid server + version | 10.1.6.22 (version TBD) |
+| DNS servers / NTP | DNS 10.1.6.10, 10.1.6.11; NTP TBD |
+| Alert destination (email / Slack / Teams / ntfy / Pushover) | ntfy.sh, private topic + access token |
 
 ## Stack
 | Function | Component | Notes |

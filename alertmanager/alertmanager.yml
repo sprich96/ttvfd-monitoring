@@ -1,5 +1,5 @@
-# Phase 1: receivers are placeholders (no destination configured yet).
-# Phase 8 wires real receivers per severity; secrets via *_file from Docker secrets.
+# critical/warning -> ntfy.sh (URL + token via Docker secrets from .env).
+# watchdog -> external dead-man's switch (phase 8).
 global:
   resolve_timeout: 5m
 
@@ -27,4 +27,18 @@ receivers:
   - name: blackhole
   - name: watchdog     # -> external dead-man's switch (phase 8)
   - name: critical
+    webhook_configs:
+      - url_file: /run/secrets/ntfy_url_critical
+        send_resolved: true
+        http_config:
+          authorization:
+            type: Bearer
+            credentials_file: /run/secrets/ntfy_token
   - name: warning
+    webhook_configs:
+      - url_file: /run/secrets/ntfy_url_warning
+        send_resolved: true
+        http_config:
+          authorization:
+            type: Bearer
+            credentials_file: /run/secrets/ntfy_token

@@ -45,6 +45,7 @@ services:
     volumes:
       - ./alertmanager:/etc/alertmanager:ro
       - ${DATA_ROOT}/alertmanager:/alertmanager
+    secrets: [ntfy_url_critical, ntfy_url_warning, ntfy_token]
     ports:
       - "127.0.0.1:9093:9093"   # SSH tunnel only
     networks: [mon]
@@ -136,3 +137,11 @@ services:
       - /:/host:ro,rslave
       - /run/dbus/system_bus_socket:/var/run/dbus/system_bus_socket:ro
     depends_on: [prometheus]   # ensures br-mon exists before bind
+
+secrets:
+  ntfy_url_critical:
+    environment: NTFY_URL_CRITICAL
+  ntfy_url_warning:
+    environment: NTFY_URL_WARNING
+  ntfy_token:
+    environment: NTFY_TOKEN

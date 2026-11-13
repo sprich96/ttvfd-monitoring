@@ -6,7 +6,7 @@
 	default_sni {$HOST_IP}
 }
 
-{$GRAFANA_HOSTNAME}, {$HOST_IP} {
+{$GRAFANA_HOSTNAME}, {$GRAFANA_ALIASES}, {$HOST_IP} {
 	tls internal
 	encode zstd gzip
 	reverse_proxy grafana:3000

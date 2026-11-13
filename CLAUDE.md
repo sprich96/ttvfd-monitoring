@@ -26,7 +26,7 @@ One Docker Compose stack on this VM that gives metrics, logs, dashboards and ale
 | Hyper-V hosts (note which one runs this VM) | veeam 10.1.6.24 (runs this VM) |
 | Veeam B&R server + version (12.x / 13, Windows or appliance) | veeam 10.1.6.24 (version TBD) |
 | Veeam repositories (and whether any sit on Unraid) | |
-| Unraid server + version | 10.1.6.22 (version TBD) |
+| Unraid server + version | 10.1.6.22, Unraid 7.2.3 |
 | DNS servers / NTP | DNS 10.1.6.10, 10.1.6.11; NTP TBD |
 | Alert destination (email / Slack / Teams / ntfy / Pushover) | ntfy.sh, private topic + access token |
 

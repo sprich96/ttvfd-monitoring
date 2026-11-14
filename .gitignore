@@ -5,3 +5,4 @@ secrets/
 *.key
 __pycache__/
 .venv/
+inventory/raw/
